@@ -1058,7 +1058,11 @@ class DataSet(object):
             
     def computeERTfromEvals(self):
         """Sets the attributes ert and target from the attribute evals."""
+        if isinstance(self.maxevals, dict):
+            warnings.warn("computeERT is not executed when maxevals is a `dict`")
+            return
         self._ert = []
+        self._ert_nb_of_data = len(self.evals[0]) - 1
         self.target = []
         for i in self.evals:
             data = i[1:]
@@ -1266,6 +1270,10 @@ class DataSet(object):
         Depending on `genericsettings.balance_instances`, the average is
         weighted to make up for unbalanced problem instance occurances.
         """
+        if not isinstance(self.maxevals, dict) and (  # bestalg DataSets have correctly computed _ert
+            not hasattr(self, '_ert_nb_of_data') or
+            self._ert_nb_of_data != len(self.evals[0]) - 1):
+            self.computeERTfromEvals()
         return self._ert
 
     @property  # cave: setters work only with new style classes
